@@ -23,13 +23,22 @@ const styles = StyleSheet.create({
   },
   playIcon: {
     color: '#0A84FF',
-    fontSize: 20,
+    fontSize: 24,
     marginRight: 15,
   },
-  noteTitle: {
+  noteDetails: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
+  noteDurationText: {
     color: '#FFFFFF',
     fontSize: 16,
-    flexShrink: 1, // Permite que o texto quebre a linha se for muito longo
+    fontWeight: 'bold',
+  },
+  noteDateText: {
+    color: '#8E8E93',
+    fontSize: 12,
+    marginTop: 4,
   },
   deleteIcon: {
     fontSize: 22,
