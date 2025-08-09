@@ -1,49 +1,60 @@
 import React from 'react';
-import { View, Text, SafeAreaView, FlatList, StyleSheet } from 'react-native';
+import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import Button from '../../components/common/Button';
+import { useRecordings, Recording } from '../../hooks/useRecordings';
 import styles from './styles';
 
-// Dados de exemplo. No futuro, virão do armazenamento do celular.
-const MOCK_NOTES = [
-  { id: '1', title: 'Gravação 001', duration: '0:35' },
-  { id: '2', title: 'Ideia para o projeto', duration: '1:12' },
-  { id: '3', title: 'Lembrete reunião', duration: '0:15' },
-];
-
-// Tipando o hook de navegação para ter autocomplete e segurança de tipos
-type HomeScreenNavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  'Home'
->;
+type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
 const HomeScreen = () => {
   const navigation = useNavigation<HomeScreenNavigationProp>();
+  const { recordings, nowPlaying, playRecording, deleteRecording } = useRecordings();
 
   const handleNavigateToRecording = () => {
     navigation.navigate('Recording');
   };
 
-  const renderNote = ({ item }: { item: typeof MOCK_NOTES[0] }) => (
-    <View style={styles.noteItem}>
-      <Text style={styles.noteTitle}>{item.title}</Text>
-      <Text style={styles.noteDuration}>{item.duration}</Text>
-    </View>
-  );
+  const confirmDelete = (path: string) => {
+    Alert.alert(
+      "Excluir Gravação",
+      "Você tem certeza que deseja excluir esta nota de voz?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Excluir", style: "destructive", onPress: () => deleteRecording(path) }
+      ]
+    );
+  };
+
+  const renderNote = ({ item }: { item: Recording }) => {
+    const isPlaying = nowPlaying === item.path;
+    return (
+      <View style={styles.noteItem}>
+        <TouchableOpacity style={styles.notePlayButton} onPress={() => playRecording(item.path)}>
+          <Text style={styles.playIcon}>{isPlaying ? '❚❚' : '▶'}</Text>
+          <Text style={styles.noteTitle}>{item.name.replace('voice_note_', '').replace('.aac', '').replace('.mp4', '')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => confirmDelete(item.path)}>
+          <Text style={styles.deleteIcon}>🗑️</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
-        data={MOCK_NOTES}
+        data={recordings}
         renderItem={renderNote}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.path}
         ListEmptyComponent={
             <View style={styles.emptyContainer}>
                 <Text style={styles.emptyText}>Nenhuma nota de voz gravada.</Text>
             </View>
         }
+        contentContainerStyle={recordings.length === 0 ? { flex: 1 } : {}}
       />
       <View style={styles.buttonContainer}>
         <Button title="Nova Gravação" onPress={handleNavigateToRecording} />

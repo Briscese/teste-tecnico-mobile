@@ -4,7 +4,7 @@ import HomeScreen from '../screens/HomeScreen';
 import RecordingScreen from '../screens/RecordingScreen';
 
 export type RootStackParamList = {
-  Home: undefined; // A tela Home não recebe parâmetros
+  Home: { refresh?: boolean } | undefined;
   Recording: undefined; // A tela Recording também não
 };
 

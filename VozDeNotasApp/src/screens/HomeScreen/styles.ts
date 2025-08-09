@@ -7,7 +7,8 @@ const styles = StyleSheet.create({
   },
   noteItem: {
     backgroundColor: '#1C1C1E',
-    padding: 20,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
     marginVertical: 8,
     marginHorizontal: 16,
     borderRadius: 10,
@@ -15,13 +16,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  notePlayButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  playIcon: {
+    color: '#0A84FF',
+    fontSize: 20,
+    marginRight: 15,
+  },
   noteTitle: {
     color: '#FFFFFF',
     fontSize: 16,
+    flexShrink: 1, // Permite que o texto quebre a linha se for muito longo
   },
-  noteDuration: {
-    color: '#8E8E93',
-    fontSize: 14,
+  deleteIcon: {
+    fontSize: 22,
+    marginLeft: 15,
   },
   buttonContainer: {
     padding: 20,
@@ -32,12 +44,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 50,
   },
   emptyText: {
     color: '#8E8E93',
     fontSize: 16,
-  }
+  } 
 });
 
 export default styles;

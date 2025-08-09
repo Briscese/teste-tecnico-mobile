@@ -3,17 +3,21 @@ import { View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useAudio } from '../../hooks/useAudio';
 import { useNavigation } from '@react-navigation/native';
 import styles from './styles'; 
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../navigation/AppNavigator';
+
+type RecordingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Recording'>;
 
 const RecordingScreen = () => {
   const { isRecording, recordTime, startRecording, stopRecording } = useAudio();
-  const navigation = useNavigation();
+  const navigation = useNavigation<RecordingScreenNavigationProp>();
 
   const handleToggleRecording = async () => {
     if (isRecording) {
       const audioPath = await stopRecording();
       if (audioPath) {
         console.log(`Áudio salvo em: ${audioPath}`);
-        navigation.goBack();
+        navigation.navigate('Home'); 
       }
     } else {
       await startRecording();
