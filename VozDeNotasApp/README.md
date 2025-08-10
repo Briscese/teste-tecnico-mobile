@@ -1,4 +1,4 @@
-# App de Notas de Voz (Voice Notes App)
+# App de Notas de Voz
 
 Este é um aplicativo móvel desenvolvido em **React Native (CLI)** que permite ao usuário gravar, gerenciar e reproduzir notas de voz.  
 O projeto foi desenvolvido como parte de um teste técnico, com foco no uso de funcionalidades nativas do Android, sem a necessidade de um backend.
