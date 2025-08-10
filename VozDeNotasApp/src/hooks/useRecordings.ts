@@ -7,7 +7,7 @@ export interface Recording {
   name: string;
   path: string;
   date: Date;
-  duration: number; // Duração em milissegundos
+  duration: number; 
 }
 
 export const useRecordings = () => {

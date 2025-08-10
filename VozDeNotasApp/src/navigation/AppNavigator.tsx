@@ -7,7 +7,7 @@ import RecordingScreen from '../screens/RecordingScreen';
 export type RootStackParamList = {
   Home: { refresh?: boolean } | undefined;
   Recording: undefined;
-  //Transcription: undefined; // Adicionar nova rota
+  //Transcription: undefined; 
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();

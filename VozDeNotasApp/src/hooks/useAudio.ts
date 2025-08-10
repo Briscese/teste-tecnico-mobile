@@ -20,6 +20,7 @@ export const useAudio = () => {
     const hasPermission = await requestAudioPermission();
     if (!hasPermission) return;
 
+    // Inicio da Simulação de Streaming
     const timestamp = new Date().getTime();
     // O nome do arquivo agora é temporário, sem a duração
     const fileName = `voice_note_${timestamp}.mp4`;
@@ -45,7 +46,7 @@ export const useAudio = () => {
         setRecordTime(audioService.mmssss(Math.floor(e.currentPosition)));
         durationRef.current = e.currentPosition; // Atualiza a duração em ms
       });
-
+      // Salvamento do Bloco
       chunkIntervalRef.current = setInterval(async () => {
         try {
             const stats = await RNFS.stat(pathRef.current);

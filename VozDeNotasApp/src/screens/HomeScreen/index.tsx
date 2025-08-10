@@ -34,7 +34,7 @@ const HomeScreen = () => {
 
   const handleNavigateToRecording = () => navigation.navigate('Recording');
   
-  //  A função agora mostra um alerta.
+  //  A função agora mostra um alerta para futura implementação da função
   const handleNavigateToTranscription = () => {
     Alert.alert(
       "Funcionalidade em Breve",
