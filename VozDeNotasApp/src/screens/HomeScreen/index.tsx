@@ -7,7 +7,7 @@ import Button from '../../components/common/Button';
 import { useRecordings, Recording } from '../../hooks/useRecordings';
 import styles from './styles';
 
-// Formata milissegundos para o formato mm:ss
+// formato mm:ss
 const formatDuration = (ms: number) => {
   const totalSeconds = Math.floor(ms / 1000);
   const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
@@ -15,7 +15,7 @@ const formatDuration = (ms: number) => {
   return `${minutes}:${seconds}`;
 };
 
-// Formata a data para um formato amigável, ex: "09/08/2025 11:30"
+//  "09/08/2025 11:30"
 const formatDate = (date: Date) => {
   return date.toLocaleString('pt-BR', {
     day: '2-digit',
@@ -32,8 +32,15 @@ const HomeScreen = () => {
   const navigation = useNavigation<HomeScreenNavigationProp>();
   const { recordings, nowPlaying, playRecording, deleteRecording } = useRecordings();
 
-  const handleNavigateToRecording = () => {
-    navigation.navigate('Recording');
+  const handleNavigateToRecording = () => navigation.navigate('Recording');
+  
+  //  A função agora mostra um alerta.
+  const handleNavigateToTranscription = () => {
+    Alert.alert(
+      "Funcionalidade em Breve",
+      "A transcrição de áudio ao vivo está em desenvolvimento e estará disponível em futuras versões.",
+      [{ text: "OK" }]
+    );
   };
 
   const confirmDelete = (path: string) => {
@@ -80,6 +87,9 @@ const HomeScreen = () => {
       />
       <View style={styles.buttonContainer}>
         <Button title="Nova Gravação" onPress={handleNavigateToRecording} />
+        <View style={{marginTop: 10}}>
+            <Button title="Transcrição ao Vivo" onPress={handleNavigateToTranscription} />
+        </View>
       </View>
     </SafeAreaView>
   );

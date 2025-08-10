@@ -1,3 +1,12 @@
 {
-  "extends": "@react-native/typescript-config"
+  "extends": "@react-native/typescript-config",
+  "compilerOptions": {
+    /* Ativa todas as checagens de tipo estritas. */
+    "strict": true,
+    /* Lista de bibliotecas de tipos a serem incluídas na compilação. */
+    "lib": [
+      "es2017",
+      "es2015" // Adiciona o suporte para Promises, necessário para async/await
+    ]
+  }
 }
