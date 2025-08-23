@@ -5,8 +5,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { audioService } from '../services/AudioService';
 
 export interface Recording {
-  name: string; // Nome da pasta
-  path: string; // Caminho da pasta
+  name: string; 
+  path: string; 
   date: Date;
   duration: number;
 }
@@ -46,13 +46,13 @@ export const useRecordings = () => {
     }
   }, [recordingsDir]);
 
-  // Função para recuperar uma gravação interrompida
+  // Recupera uma gravação incompleta
   const recoverRecording = async (sessionPath: string) => {
     try {
       const chunks = await RNFS.readDir(sessionPath);
       const lastChunkIndex = chunks.length;
       // Aproxima a duração com base no número de blocos
-      const approxDuration = lastChunkIndex * 5000; 
+      const approxDuration = lastChunkIndex;
       
       const timestampMatch = sessionPath.match(/recording_(\d+)/);
       if (!timestampMatch) return;
@@ -63,18 +63,18 @@ export const useRecordings = () => {
       
       await RNFS.moveFile(sessionPath, finalFolderPath);
       console.log("Gravação recuperada:", finalFolderPath);
-      loadRecordings(); // Recarrega a lista para mostrar a gravação recuperada
+      loadRecordings();
     } catch (error) {
       console.error("Falha ao recuperar gravação", error);
     }
   };
 
-  // Função para descartar uma gravação interrompida
+  // Descarta gravação interrompida
   const discardRecording = async (sessionPath: string) => {
     await RNFS.unlink(sessionPath).catch(err => console.error("Falha ao descartar gravação", err));
   };
 
-  // Função que verifica a pasta temporária por gravações "órfãs"
+  // Busca por gravações incompletas
   const checkForIncompleteRecordings = useCallback(async () => {
     try {
         const tempItems = await RNFS.readDir(tempDir);
@@ -83,7 +83,6 @@ export const useRecordings = () => {
         );
 
         if (incompleteSessions.length > 0) {
-            // Pega a primeira sessão incompleta encontrada
             const sessionToRecover = incompleteSessions[0]; 
             Alert.alert(
                 "Gravação Incompleta",
@@ -99,17 +98,15 @@ export const useRecordings = () => {
     }
   }, [tempDir]);
 
-  // Roda toda vez que a tela ganha foco
   useFocusEffect(useCallback(() => {
     loadRecordings();
-    // Roda a verificação de recuperação apenas na primeira vez que o app é carregado
     if (!hasCheckedForIncompleteRef.current) {
         checkForIncompleteRecordings();
         hasCheckedForIncompleteRef.current = true;
     }
   }, [loadRecordings, checkForIncompleteRecordings]));
 
-  // Função para tocar os blocos de uma gravação em sequência
+  // Função para tocar uma gravação como se fosse unica e não em blocos.
   const playRecording = async (folderPath: string) => {
     if (playbackController.current.isPlaying) {
       await audioService.stopPlayer();
@@ -147,9 +144,9 @@ export const useRecordings = () => {
         await audioService.startPlayer(chunkPath);
         
         audioService.addPlayBackListener((e) => {
-          if (e.currentPosition >= e.duration - 50) { // Pequena margem
+          if (e.currentPosition >= e.duration - 50) { 
             audioService.removePlayBackListener();
-            playChunk(index + 1); // Toca o próximo bloco
+            playChunk(index + 1); 
           }
         });
       };
@@ -171,7 +168,7 @@ export const useRecordings = () => {
         setNowPlaying(null);
         playbackController.current.isPlaying = false;
       }
-      await RNFS.unlink(folderPath); // Deleta a pasta inteira
+      await RNFS.unlink(folderPath); // Deleta a pasta inteira ou seja a gravação.
       loadRecordings();
     } catch (error) {
       console.error('Falha ao deletar a gravação', error);

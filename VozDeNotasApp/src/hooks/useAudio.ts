@@ -9,39 +9,39 @@ import RNFS from 'react-native-fs';
 import { audioService } from '../services/AudioService';
 
 export const useAudio = () => {
-  // Estado para controlar se a gravação está ativa (controla a UI)
+
   const [isRecording, setIsRecording] = useState(false);
-  // Estado para exibir o tempo de gravação na tela
+  
   const [recordTime, setRecordTime] = useState('00:00:00');
 
-  // Refs para guardar valores sem causar re-renderizações da tela
+  
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null); // Guarda o ID do timer de 5 segundos
   const sessionPathRef = useRef(''); // Guarda o caminho da pasta temporária da gravação atual
   const chunkCounterRef = useRef(0); // Conta quantos blocos de 5s foram gravados
   const recordingStartTimeRef = useRef(0); // Guarda o momento em que a gravação começou
 
   const startRecording = async (): Promise<void> => {
-    // 1. Pede permissão para usar o microfone
+    
     const hasPermission = await requestAudioPermission();
     if (!hasPermission) return;
 
-    // 2. Cria uma pasta temporária única para esta sessão de gravação
+    // Cria uma pasta temporária única para esta sessão de gravação
     const timestamp = new Date().getTime();
     sessionPathRef.current = `${RNFS.TemporaryDirectoryPath}/recording_${timestamp}`;
     await RNFS.mkdir(sessionPathRef.current);
 
-    // 3. Atualiza os estados e refs para o início de uma nova gravação
+  
     setIsRecording(true);
     chunkCounterRef.current = 0;
     recordingStartTimeRef.current = Date.now();
 
-    // 4. Inicia o cronômetro que atualiza a UI a cada segundo
+    // Inicia o cronômetro que atualiza a UI a cada segundo
     const timerInterval = setInterval(() => {
       const elapsed = Date.now() - recordingStartTimeRef.current;
       setRecordTime(audioService.mmssss(Math.floor(elapsed)));
     }, 1000);
 
-    // 5. Define a função que grava um único bloco de áudio
+    // Define a função que grava um único bloco de áudio
     const recordNextChunk = async () => {
       chunkCounterRef.current++;
       const chunkPath = `${sessionPathRef.current}/chunk_${chunkCounterRef.current}.mp4`;
@@ -58,10 +58,10 @@ export const useAudio = () => {
       }
     };
     
-    // 6. Inicia a gravação do primeiro bloco imediatamente
+    // Inicia a gravação do primeiro bloco imediatamente
     recordNextChunk();
 
-    // 7. A cada 5 segundos, para a gravação do bloco atual e inicia a do próximo
+    // A cada 5 segundos, para a gravação do bloco atual e inicia a do próximo
     // Esta é a implementação do salvamento em blocos.
     recordingIntervalRef.current = setInterval(async () => {
       await audioService.stopRecorder();
@@ -75,24 +75,24 @@ export const useAudio = () => {
   const stopRecording = async (): Promise<string | undefined> => {
     if (!recordingIntervalRef.current) return;
 
-    // 1. Para todos os timers e a gravação do último bloco
+    // Para todos os timers e a gravação do último bloco
     clearInterval(recordingIntervalRef.current);
     clearInterval((recordingIntervalRef.current as any).uiTimer);
     recordingIntervalRef.current = null;
     await audioService.stopRecorder();
 
-    // 2. Reseta os estados da UI
+    // Reseta os estados da UI
     setIsRecording(false);
     setRecordTime('00:00:00');
 
-    // 3. Define o nome e o caminho da pasta final da gravação
+    // Define o nome e o caminho da pasta final da gravação
     const finalTimestamp = recordingStartTimeRef.current; // Usa o timestamp do início
     const finalDuration = Date.now() - recordingStartTimeRef.current;
     const finalFolderName = `voice_note_${finalTimestamp}_${finalDuration}`;
     const finalFolderPath = `${RNFS.DocumentDirectoryPath}/recordings/${finalFolderName}`;
     
     try {
-      // 4. Move a pasta temporária (com todos os blocos) para a pasta permanente de gravações
+      // Move a pasta temporária (com todos os blocos) para a pasta permanente de gravações
       await RNFS.moveFile(sessionPathRef.current, finalFolderPath);
       console.log('Gravação finalizada e movida para:', finalFolderPath);
       return finalFolderPath;
