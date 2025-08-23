@@ -52,7 +52,7 @@ export const useRecordings = () => {
       const chunks = await RNFS.readDir(sessionPath);
       const lastChunkIndex = chunks.length;
       // Aproxima a duração com base no número de blocos
-      const approxDuration = lastChunkIndex;
+      const approxDuration = lastChunkIndex * 5000;
       
       const timestampMatch = sessionPath.match(/recording_(\d+)/);
       if (!timestampMatch) return;
@@ -144,7 +144,7 @@ export const useRecordings = () => {
         await audioService.startPlayer(chunkPath);
         
         audioService.addPlayBackListener((e) => {
-          if (e.currentPosition >= e.duration - 50) { 
+          if (e.currentPosition >= e.duration - 150) { 
             audioService.removePlayBackListener();
             playChunk(index + 1); 
           }
