@@ -2,7 +2,6 @@ import { useState, useRef } from 'react';
 import {
   AudioEncoderAndroidType,
   AudioSourceAndroidType,
-  AVEncoderAudioQualityIOSType,
   OutputFormatAndroidType,
 } from 'react-native-audio-recorder-player';
 import { requestAudioPermission } from '../utils/permissions';
@@ -10,88 +9,97 @@ import RNFS from 'react-native-fs';
 import { audioService } from '../services/AudioService';
 
 export const useAudio = () => {
+  // Estado para controlar se a gravação está ativa (controla a UI)
   const [isRecording, setIsRecording] = useState(false);
+  // Estado para exibir o tempo de gravação na tela
   const [recordTime, setRecordTime] = useState('00:00:00');
-  const pathRef = useRef('');
-  const chunkIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const durationRef = useRef(0); // Para guardar a duração em ms
+
+  // Refs para guardar valores sem causar re-renderizações da tela
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null); // Guarda o ID do timer de 5 segundos
+  const sessionPathRef = useRef(''); // Guarda o caminho da pasta temporária da gravação atual
+  const chunkCounterRef = useRef(0); // Conta quantos blocos de 5s foram gravados
+  const recordingStartTimeRef = useRef(0); // Guarda o momento em que a gravação começou
 
   const startRecording = async (): Promise<void> => {
+    // 1. Pede permissão para usar o microfone
     const hasPermission = await requestAudioPermission();
     if (!hasPermission) return;
 
-    // Inicio da Simulação de Streaming
+    // 2. Cria uma pasta temporária única para esta sessão de gravação
     const timestamp = new Date().getTime();
-    // O nome do arquivo agora é temporário, sem a duração
-    const fileName = `voice_note_${timestamp}.mp4`;
-    const recordingsDir = `${RNFS.DocumentDirectoryPath}/recordings`;
-    await RNFS.mkdir(recordingsDir).catch(e => console.log('Diretório já existe'));
-    pathRef.current = `${recordingsDir}/${fileName}`;
-    durationRef.current = 0; // Reseta a duração
+    sessionPathRef.current = `${RNFS.TemporaryDirectoryPath}/recording_${timestamp}`;
+    await RNFS.mkdir(sessionPathRef.current);
 
-    const audioSet = {
-      AudioEncoderAndroid: AudioEncoderAndroidType.AAC,
-      AudioSourceAndroid: AudioSourceAndroidType.MIC,
-      OutputFormatAndroid: OutputFormatAndroidType.MPEG_4,
-      AVEncoderAudioQualityKeyIOS: AVEncoderAudioQualityIOSType.high,
-      AVNumberOfChannelsKeyIOS: 2,
+    // 3. Atualiza os estados e refs para o início de uma nova gravação
+    setIsRecording(true);
+    chunkCounterRef.current = 0;
+    recordingStartTimeRef.current = Date.now();
+
+    // 4. Inicia o cronômetro que atualiza a UI a cada segundo
+    const timerInterval = setInterval(() => {
+      const elapsed = Date.now() - recordingStartTimeRef.current;
+      setRecordTime(audioService.mmssss(Math.floor(elapsed)));
+    }, 1000);
+
+    // 5. Define a função que grava um único bloco de áudio
+    const recordNextChunk = async () => {
+      chunkCounterRef.current++;
+      const chunkPath = `${sessionPathRef.current}/chunk_${chunkCounterRef.current}.mp4`;
+      const audioSet = {
+        AudioEncoderAndroid: AudioEncoderAndroidType.AAC,
+        AudioSourceAndroid: AudioSourceAndroidType.MIC,
+        OutputFormatAndroid: OutputFormatAndroidType.MPEG_4,
+      };
+      try {
+        await audioService.startRecorder(chunkPath, audioSet);
+        console.log(`Gravando bloco ${chunkCounterRef.current}...`);
+      } catch (error) {
+        console.error(`Falha ao gravar o bloco ${chunkCounterRef.current}`, error);
+      }
     };
+    
+    // 6. Inicia a gravação do primeiro bloco imediatamente
+    recordNextChunk();
 
-    try {
-      const result = await audioService.startRecorder(pathRef.current, audioSet);
-      setIsRecording(true);
-      console.log('Gravação iniciada:', result);
+    // 7. A cada 5 segundos, para a gravação do bloco atual e inicia a do próximo
+    // Esta é a implementação do salvamento em blocos.
+    recordingIntervalRef.current = setInterval(async () => {
+      await audioService.stopRecorder();
+      recordNextChunk();
+    }, 5000);
 
-      audioService.addRecordBackListener((e) => {
-        setRecordTime(audioService.mmssss(Math.floor(e.currentPosition)));
-        durationRef.current = e.currentPosition; // Atualiza a duração em ms
-      });
-      // Salvamento do Bloco
-      chunkIntervalRef.current = setInterval(async () => {
-        try {
-            const stats = await RNFS.stat(pathRef.current);
-            console.log(`[STREAMING SIM] Bloco salvo. Tamanho atual: ${stats.size} bytes.`);
-        } catch (error) {
-            console.log('[STREAMING SIM] Aguardando criação do arquivo...');
-        }
-      }, 5000);
-
-    } catch (error) {
-      console.error('Falha ao iniciar a gravação', error);
-    }
+    // Guarda a referência do timer da UI para poder limpá-lo depois
+    (recordingIntervalRef.current as any).uiTimer = timerInterval;
   };
 
   const stopRecording = async (): Promise<string | undefined> => {
+    if (!recordingIntervalRef.current) return;
+
+    // 1. Para todos os timers e a gravação do último bloco
+    clearInterval(recordingIntervalRef.current);
+    clearInterval((recordingIntervalRef.current as any).uiTimer);
+    recordingIntervalRef.current = null;
+    await audioService.stopRecorder();
+
+    // 2. Reseta os estados da UI
+    setIsRecording(false);
+    setRecordTime('00:00:00');
+
+    // 3. Define o nome e o caminho da pasta final da gravação
+    const finalTimestamp = recordingStartTimeRef.current; // Usa o timestamp do início
+    const finalDuration = Date.now() - recordingStartTimeRef.current;
+    const finalFolderName = `voice_note_${finalTimestamp}_${finalDuration}`;
+    const finalFolderPath = `${RNFS.DocumentDirectoryPath}/recordings/${finalFolderName}`;
+    
     try {
-      if (chunkIntervalRef.current) {
-        clearInterval(chunkIntervalRef.current);
-        chunkIntervalRef.current = null;
-      }
-
-      const oldPath = pathRef.current;
-      const finalDurationMs = Math.round(durationRef.current);
-
-      await audioService.stopRecorder();
-      audioService.removeRecordBackListener();
-      setIsRecording(false);
-      setRecordTime('00:00:00');
-      
-      const timestampMatch = oldPath.match(/voice_note_(\d+)\.mp4/);
-      if (!timestampMatch) {
-          console.error("Não foi possível extrair o timestamp do nome do arquivo:", oldPath);
-          return oldPath; // Retorna o caminho antigo como fallback
-      }
-      const timestamp = timestampMatch[1];
-      
-      const newFileName = `voice_note_${timestamp}_${finalDurationMs}.mp4`;
-      const newPath = `${RNFS.DocumentDirectoryPath}/recordings/${newFileName}`;
-      
-      await RNFS.moveFile(oldPath, newPath);
-      console.log('Gravação finalizada e renomeada para:', newPath);
-
-      return newPath;
+      // 4. Move a pasta temporária (com todos os blocos) para a pasta permanente de gravações
+      await RNFS.moveFile(sessionPathRef.current, finalFolderPath);
+      console.log('Gravação finalizada e movida para:', finalFolderPath);
+      return finalFolderPath;
     } catch (error) {
-      console.error('Falha ao parar a gravação', error);
+      console.error("Falha ao mover a pasta da sessão", error);
+      // Se a movimentação falhar, limpa a pasta temporária para não deixar lixo
+      await RNFS.unlink(sessionPathRef.current).catch(() => {});
       return undefined;
     }
   };
