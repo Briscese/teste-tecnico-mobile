@@ -35,11 +35,11 @@ export const useAudio = () => {
     chunkCounterRef.current = 0;
     recordingStartTimeRef.current = Date.now();
 
-    // Inicia o cronômetro que atualiza a UI a cada segundo
+    // Inicia o cronômetro que atualiza a UI a cada 100ms
     const timerInterval = setInterval(() => {
       const elapsed = Date.now() - recordingStartTimeRef.current;
       setRecordTime(audioService.mmssss(Math.floor(elapsed)));
-    }, 1000);
+    }, 100);
 
     // Define a função que grava um único bloco de áudio
     const recordNextChunk = async () => {
