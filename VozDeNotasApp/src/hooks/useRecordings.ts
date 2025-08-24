@@ -138,7 +138,7 @@ export const useRecordings = () => {
         await audioService.startPlayer(chunkPath);
         
         audioService.addPlayBackListener((e) => {
-          if (e.currentPosition >= e.duration - 150) {
+          if (e.currentPosition >= e.duration - 400) {
             audioService.removePlayBackListener();
             playChunk(index + 1);
           }
