@@ -81,4 +81,5 @@ Um arquivo APK de teste está disponível para instalação direta em um disposi
 - **[Link para Download](https://drive.google.com/file/d/1AW32brWXput3zjSKYD4WvEMs3kgGdjjC/view?usp=sharing)**: VozDeNotasApp APK via Google Drive
 
 > **Observação**: Pode ser necessário habilitar a opção *"Instalar apps de fontes desconhecidas"* nas configurações de segurança do seu Android.
+
 > **Observação**: Como é um APK de teste, deve estar ligado por cabo no celular para funcionar.
