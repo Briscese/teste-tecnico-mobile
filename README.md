@@ -9,7 +9,7 @@ O projeto foi desenvolvido como parte de um teste técnico, com foco no uso de f
 - **Armazenamento Local**: Todas as notas de voz são salvas localmente no armazenamento interno do dispositivo.
 - **Listagem e Reprodução**: A tela inicial exibe uma lista de todas as gravações, mostrando a duração, data e hora de cada uma. O usuário pode reproduzir qualquer áudio diretamente da lista.
 - **Exclusão de Notas**: É possível excluir gravações de forma individual.
-- **Simulação de Streaming**: Durante a gravação, o aplicativo verifica o tamanho do arquivo a cada 5 segundos para simular um comportamento de salvamento em blocos, com logs visíveis no console de desenvolvimento.
+- **Simulação de Streaming**: Durante a gravação, o aplicativo cria uma pasta temporaria para a gravação atual, e se for interrompida a gravação fica gravada para quando o usuario abrir novamente o aplicativo novamente e queira recuprerar o audio e envia para uma parte de gravações definitivas, se ele parar a gravação pelo botão de parar, a gravação vai direto para a pasta definitivas. (São gravados blocos de 5 em 5 segundos)
 
 ## 🛠 Tecnologias e Bibliotecas Principais
 
